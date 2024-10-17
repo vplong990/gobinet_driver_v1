@@ -1,31 +1,16 @@
-obj-m := GobiNet.o
-GobiNet-objs := GobiUSBNet.o QMIDevice.o QMI.o
+ifneq ($(CROSS_COMPILE),)
+CROSS-COMPILE:=$(CROSS_COMPILE)
+endif
+#CROSS-COMPILE:=/workspace/buildroot/buildroot-qemu_mips_malta_defconfig/output/host/usr/bin/mips-buildroot-linux-uclibc-
+#CROSS-COMPILE:=/workspace/buildroot/buildroot-qemu_arm_vexpress_defconfig/output/host/usr/bin/arm-buildroot-linux-uclibcgnueabi-
+#CROSS-COMPILE:=/workspace/buildroot-git/qemu_mips64_malta/output/host/usr/bin/mips-gnu-linux-
+ifeq ($(CC),cc) 
+CC:=$(CROSS-COMPILE)gcc
+endif
+LD:=$(CROSS-COMPILE)ld
 
-PWD := $(shell pwd)
-OUTPUTDIR=/lib/modules/`uname -r`/kernel/drivers/net/usb/
-
-#ifeq ($(ARCH),)
-#EARCH := $(shell uname -m)
-#endif
-#ifeq ($(CROSS_COMPILE),)
-#CROSS_COMPILE :=
-#endif
-#ifeq ($(KDIR),)
-KDIR := /lib/modules/$(shell uname -r)/build
-#endif
-
-default:
-#	ln -sf makefile Makefile
-	#$(MAKE) ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} -C $(KDIR) M=$(PWD) modules
-	$(MAKE)  CROSS_COMPILE=${CROSS_COMPILE} -C $(KDIR) M=$(PWD) modules
-
-install: default
-	mkdir -p $(OUTPUTDIR)
-	cp -f GobiNet.ko $(OUTPUTDIR)
-	depmod
-	modprobe -r GobiNet
-	modprobe GobiNet
-
+release: clean
+	$(CC) -Wall -s QMI.c QMIDevice.c GobiUSBNet.c -o GobiNet.ko
 clean:
-	rm -rf Makefile
-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.* modules.order
+	rm -rf GobiNet
+	
